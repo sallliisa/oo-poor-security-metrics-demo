@@ -5,89 +5,27 @@ namespace MediLink.Data
     /// Demonstrates POOR security practices for educational analysis.
     /// 
     /// AVR Calculation:
-    /// - Total Attributes: 5
-    /// - Vulnerable Attributes: 2 (AuthToken, Password)
-    /// - AVR Score: 2/5 = 0.40 (40%)
+    /// - Total Attributes: 6
+    /// - Vulnerable Attributes: 3 (AuthToken, Password, MedicalLicenseNumber)
+    /// - AVR Score: 3/6 = 0.50 (50%)
     /// </summary>
-    public class Doctor
+    /// <summary>
+    /// Stores doctor information.
+    /// Inherits vulnerable authentication from User class.
+    /// </summary>
+    public class Doctor : User
     {
-        // ========== SAFE ATTRIBUTES (3) ==========
+        // ========== SAFE ATTRIBUTES (1) ==========
 
         /// <summary>
-        /// Unique identifier for the doctor.
+        /// Reference to medical specialty by ID (SAFE - normalized data).
         /// </summary>
-        public int DoctorID { get; set; }
+        public int SpecialtyID { get; set; }
 
         /// <summary>
-        /// Public name - considered non-sensitive.
+        /// VULNERABLE: Medical license number stored in plain text.
+        /// VULNERABILITY: Professional credentials should be encrypted.
         /// </summary>
-        public string FullName { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Medical specialty - public information.
-        /// </summary>
-        public string Specialty { get; set; } = string.Empty;
-
-        // ========== VULNERABLE ATTRIBUTES (2) ==========
-
-        /// <summary>
-        /// HIGH PRIVILEGE - Authentication token stored in plain text.
-        /// VULNERABILITY: Should be securely stored, rotated, and never exposed.
-        /// </summary>
-        public string AuthToken { get; set; } = string.Empty;
-
-        /// <summary>
-        /// CRITICAL - Plain text password storage.
-        /// VULNERABILITY: Passwords must be hashed, never stored in plain text.
-        /// </summary>
-        public string Password { get; set; } = string.Empty;
-
-        // ========== METHODS ==========
-
-        /// <summary>
-        /// VULNERABLE: Validates password with plain text comparison.
-        /// VA Risk: HIGH (1/1 = 1.00)
-        /// </summary>
-        /// <param name="input">User-provided password</param>
-        /// <returns>True if password matches</returns>
-        public bool ValidatePassword(string input)
-        {
-            // BAD PRACTICE: Plain text password comparison
-            // Should use secure hash comparison (e.g., BCrypt, Argon2)
-            return Password == input;
-        }
-
-        /// <summary>
-        /// VULNERABLE: Returns auth token without validation.
-        /// VA Risk: HIGH (1/1 = 1.00)
-        /// </summary>
-        /// <returns>Raw authentication token</returns>
-        public string GetAuthToken()
-        {
-            // BAD PRACTICE: No caller validation, no scope checking
-            return AuthToken;
-        }
-
-        /// <summary>
-        /// VULNERABLE: Generates new token without proper randomness.
-        /// </summary>
-        /// <returns>Weakly generated token</returns>
-        public string GenerateNewToken()
-        {
-            // BAD PRACTICE: Predictable token generation
-            AuthToken = $"TOKEN_{DoctorID}_{DateTime.Now.Ticks}";
-            return AuthToken;
-        }
-
-        /// <summary>
-        /// VULNERABLE: Resets password with new plain text value.
-        /// </summary>
-        /// <param name="newPassword">New password in plain text</param>
-        public void ResetPassword(string newPassword)
-        {
-            // BAD PRACTICE: No password complexity validation
-            // No hashing, storing plain text
-            Password = newPassword;
-        }
+        public string MedicalLicenseNumber { get; set; } = string.Empty;
     }
 }

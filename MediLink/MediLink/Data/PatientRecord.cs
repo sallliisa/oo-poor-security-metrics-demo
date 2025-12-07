@@ -4,9 +4,9 @@ namespace MediLink.Data
     /// Stores patient information with INTENTIONALLY HIGH AVR (Attribute Vulnerability Ratio).
     /// 
     /// AVR Calculation:
-    /// - Total Attributes: 6
-    /// - Vulnerable Attributes: 4 (DOB, SSN, MedicalHistory, CardToken)
-    /// - AVR Score: 4/6 = 0.667 (67%)
+    /// - Total Attributes: 8
+    /// - Vulnerable Attributes: 6 (DOB, SSN, MedicalHistory, PhoneNumber, EmailAddress, EmergencyContact)
+    /// - AVR Score: 6/8 = 0.75 (75%)
     /// 
     /// This class demonstrates POOR security practices for educational analysis.
     /// </summary>
@@ -45,10 +45,24 @@ namespace MediLink.Data
         public string MedicalHistory { get; set; } = string.Empty;
 
         /// <summary>
-        /// Payment card token poorly named and not properly secured.
-        /// VULNERABILITY: Payment information should be tokenized and secured.
+        /// PII - Phone number stored without encryption.
+        /// VULNERABILITY: Contact information should be protected.
         /// </summary>
-        public string CardToken { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
+
+        /// <summary>
+        /// PII - Email address stored in plain text.
+        /// VULNERABILITY: Can be used for phishing attacks.
+        /// </summary>
+        public string EmailAddress { get; set; } = string.Empty;
+
+        /// <summary>
+        /// PII - Emergency contact information.
+        /// VULNERABILITY: Sensitive personal information exposed.
+        /// </summary>
+        public string EmergencyContact { get; set; } = string.Empty;
+
+
 
         // ========== METHODS ==========
 
@@ -64,7 +78,7 @@ namespace MediLink.Data
 
         /// <summary>
         /// VULNERABLE: Accesses ALL attributes including sensitive ones.
-        /// VA Risk: HIGH - Exposes SSN, DOB, MedicalHistory, CardToken (4/6 = 0.67)
+        /// VA Risk: HIGH - Exposes SSN, DOB, MedicalHistory (3/5 = 0.60)
         /// </summary>
         /// <returns>Full patient report with all sensitive data exposed</returns>
         public string GenerateReport()
@@ -73,29 +87,39 @@ namespace MediLink.Data
             return $"Patient: {FullName}\n" +
                    $"SSN: {SSN}\n" +                    // VULNERABILITY
                    $"DOB: {DOB}\n" +                    // VULNERABILITY
-                   $"History: {MedicalHistory}\n" +    // VULNERABILITY
-                   $"Payment: {CardToken}";      // VULNERABILITY
+                   $"History: {MedicalHistory}";    // VULNERABILITY
         }
 
         /// <summary>
-        /// VULNERABLE: Returns raw SSN without masking.
+        /// VULNERABLE: Returns raw NIK without masking.
         /// VA Risk: HIGH (1/1 = 1.00)
         /// </summary>
-        /// <returns>Unmasked, unprotected SSN</returns>
-        public string GetSSN()
+        /// <returns>Unmasked, unprotected NIK</returns>
+        public string GetNIK()
         {
             // BAD PRACTICE: No masking, no audit log, direct exposure
             return SSN;
         }
 
         /// <summary>
-        /// VULNERABLE: Updates SSN without validation.
+        /// VULNERABLE: Updates NIK without validation.
         /// </summary>
-        /// <param name="newSSN">New SSN value - no validation performed</param>
-        public void UpdateSSN(string newSSN)
+        /// <param name="newNIK">New NIK value - no validation performed</param>
+        public void UpdateNIK(string newNIK)
         {
             // BAD PRACTICE: No format validation, no audit logging
-            SSN = newSSN;
+            SSN = newNIK;
+        }
+
+        /// <summary>
+        /// VULNERABLE: Exposes all contact information.
+        /// VA Risk: HIGH (3/3 = 1.00)
+        /// </summary>
+        /// <returns>Tuple containing phone, email, and emergency contact</returns>
+        public (string phone, string email, string emergency) GetContactInfo()
+        {
+            // BAD PRACTICE: Bundling all contact PII for easy extraction
+            return (PhoneNumber, EmailAddress, EmergencyContact);
         }
 
         /// <summary>
@@ -112,8 +136,7 @@ namespace MediLink.Data
                 { "FullName", FullName },
                 { "DOB", DOB },                         // VULNERABILITY
                 { "SSN", SSN },                         // VULNERABILITY
-                { "MedicalHistory", MedicalHistory },   // VULNERABILITY
-                { "CardToken", CardToken }  // VULNERABILITY
+                { "MedicalHistory", MedicalHistory }   // VULNERABILITY
             };
         }
     }

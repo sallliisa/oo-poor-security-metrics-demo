@@ -4,7 +4,7 @@ namespace MediLink.Business
     /// Data Transfer Object that carries vulnerability downstream.
     /// This DTO propagates sensitive data to external systems.
     /// 
-    /// VULNERABILITY: Contains SSN and AuthToken that should never be 
+    /// VULNERABILITY: Contains NIK and AuthToken that should never be 
     /// transmitted to external pharmacy systems.
     /// </summary>
     public class PrescriptionDTO
@@ -30,10 +30,10 @@ namespace MediLink.Business
         public string Dosage { get; set; } = string.Empty;
 
         /// <summary>
-        /// VULNERABLE: Patient's SSN is included in the DTO.
+        /// VULNERABLE: Patient's NIK is included in the DTO.
         /// This should NEVER be sent to external pharmacy systems.
         /// </summary>
-        public string PatientSSN { get; set; } = string.Empty;
+        public string PatientNIK { get; set; } = string.Empty;
 
         /// <summary>
         /// VULNERABLE: Doctor's auth token is included in the DTO.
@@ -53,7 +53,7 @@ namespace MediLink.Business
     ""patientId"": {PatientID},
     ""drugName"": ""{DrugName}"",
     ""dosage"": ""{Dosage}"",
-    ""patientSSN"": ""{PatientSSN}"",
+    ""patientNIK"": ""{PatientNIK}"",
     ""authToken"": ""{AuthToken}""
 }}";
         }

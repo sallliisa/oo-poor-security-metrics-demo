@@ -16,28 +16,47 @@ package "MediLink.Data" {
         + PatientID : int
         + FullName : string
         + DOB : DateTime
-        + SSN : string
+        + NIK : string
         + MedicalHistory : string
-        + CardToken : string
+        + PhoneNumber : string
+        + EmailAddress : string
+        + EmergencyContact : string
+
         
         + GetBasicInfo() : (int, string)
         + GenerateReport() : string
-        + GetSSN() : string
-        + UpdateSSN(newSSN: string) : void
+        + GetNIK() : string
+        + UpdateNIK(newNIK: string) : void
         + ExportAllData() : Dictionary<string, object>
+        + GetContactInfo() : (string, string, string)
     }
     
-    class Doctor {
-        + DoctorID : int
+    abstract class User {
+        + UserID : int
         + FullName : string
-        + Specialty : string
         + AuthToken : string
         + Password : string
-        
-        + ValidatePassword(input: string) : bool
+        + ValidatePassword(input: bool) : bool
         + GetAuthToken() : string
         + GenerateNewToken() : string
         + ResetPassword(newPassword: string) : void
+    }
+
+    class Doctor {
+        + SpecialtyID : int
+        + MedicalLicenseNumber : string
+    }
+
+    class Admin {
+        + AccessLevel : int
+        + Role : string
+    }
+
+    class MedicalSpecialty {
+        + SpecialtyID : int
+        + Name : string
+        + Description : string
+        + GetDisplayName() : string
     }
 }
 
@@ -47,15 +66,13 @@ package "MediLink.Business" {
         + PatientID : int
         + DrugName : string
         + Dosage : string
-        + DoctorAuthToken : string
-        + RawPatientSSN : string
+        + DrugCost : decimal
         - _patient : PatientRecord
         - _doctor : Doctor
         
         + Create(patient: PatientRecord, doctor: Doctor) : void
-        + ValidateWithSSN(inputSSN: string) : bool
         + DebugPrint() : void
-        + GetSensitiveData() : (string, string)
+        + CalculateTotalCost() : decimal
     }
     
     class PrescriptionDTO <<DTO>> {
@@ -63,38 +80,50 @@ package "MediLink.Business" {
         + PatientID : int
         + DrugName : string
         + Dosage : string
-        + PatientSSN : string
+        + PatientNIK : string
         + AuthToken : string
         
         + ToJson() : string
     }
+
+    class Appointment {
+        + AppointmentID : Guid
+        + PatientID : int
+        + DoctorID : int
+        + AppointmentDate : DateTime
+        + Duration : int
+        + Status : string
+        + Notes : string
+        + Schedule() : void
+        + Cancel() : void
+        + Reschedule(newDate: DateTime) : void
+        + Complete() : void
+    }
 }
 
 package "MediLink.Services" {
-    class PharmacyAdapter {
-        + PharmacyID : int
-        + PharmacyName : string
-        - _prescription : Prescription
-        
-        + FulfillPrescription(prescription: Prescription) : bool
-        + VerifyPatientID(ssn: string) : bool
-        + LogTransaction(prescriptionId: Guid, timestamp: DateTime) : void
-        + BulkVerify(ssnList: List<string>) : int
-        - ExecuteQuery(query: string) : bool
+    class PharmacyOrder {
+        + OrderID : Guid
+        + OrderDate : DateTime
+        + Status : string
+        + PatientName : string
+        + MarkFulfilled() : void
     }
 }
 
-package "MediLink.Utilities" {
-    class AuditLogger {
-    }
-}
+Doctor --|> User
+Admin --|> User
+Doctor --> MedicalSpecialty : references
 
 ' Relationships
 Prescription "1" *-- "1" PatientRecord : contains
 Prescription "1" *-- "1" Doctor : contains
 Prescription ..> PrescriptionDTO : creates
 
-PharmacyAdapter "1" o-- "1" Prescription : fulfills
+PharmacyOrder "1" o-- "1" Prescription : fulfills
+
+Appointment "*" --> "1" PatientRecord : scheduled for
+Appointment "*" --> "1" Doctor : with
 
 ' ' Class Descriptions
 ' note right of PatientRecord
