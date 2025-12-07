@@ -1,7 +1,6 @@
 using MediLink.Data;
 using MediLink.Business;
 using MediLink.Services;
-using MediLink.Utilities;
 
 namespace MediLink
 {
@@ -25,13 +24,6 @@ namespace MediLink
             Console.WriteLine("    For educational security metric analysis only.");
             Console.WriteLine();
 
-            // Initialize audit logger (VULNERABLE: logs sensitive data)
-            var logger = new AuditLogger
-            {
-                LogFilePath = "medilink_audit.log",
-                VerboseMode = true  // BAD PRACTICE: Enables credential logging
-            };
-
             // ========== DEMO: Patient Record (High AVR) ==========
             Console.WriteLine("--- Creating Patient Record ---");
 
@@ -42,17 +34,14 @@ namespace MediLink
                 DOB = new DateTime(1985, 3, 15),
                 SSN = "123-45-6789",             // BAD: Plain text SSN
                 MedicalHistory = "Hypertension, Diabetes Type 2",
-                CreditCardToken = "4532-XXXX-XXXX-1234"  // BAD: Card data stored
+                CardToken = "4532-XXXX-XXXX-1234"  // BAD: Card data stored
             };
-
-            // VULNERABLE: Logging patient with sensitive data
-            logger.LogPatientAccess(patient, "CREATED");
 
             // VULNERABLE: GenerateReport exposes all sensitive data
             Console.WriteLine("\n[VULNERABLE] Patient Report:");
             Console.WriteLine(patient.GenerateReport());
 
-            // ========== DEMO: Doctor (50% AVR with credentials) ==========
+            // ========== DEMO: Doctor (40% AVR with credentials) ==========
             Console.WriteLine("\n--- Creating Doctor Record ---");
 
             var doctor = new Doctor
@@ -61,12 +50,8 @@ namespace MediLink
                 FullName = "Dr. Jane Smith",
                 Specialty = "Internal Medicine",
                 AuthToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.secret", // BAD: Plain text token
-                PrivateKey = "-----BEGIN RSA PRIVATE KEY-----MIIEpQIB...",   // BAD: Exposed key
                 Password = "SecurePassword123!"  // CRITICAL: Plain text password!
             };
-
-            // VULNERABLE: Log doctor activity with credentials
-            logger.LogDoctorActivity(doctor, "CREATED");
 
             // VULNERABLE: Password validation with plain text
             Console.WriteLine($"\n[VULNERABLE] Password validation: {doctor.ValidatePassword("SecurePassword123!")}");
@@ -74,7 +59,7 @@ namespace MediLink
             // VULNERABLE: Expose auth token
             Console.WriteLine($"[VULNERABLE] Auth Token: {doctor.GetAuthToken()}");
 
-            // ========== DEMO: Prescription (CIVPF and VCC Hub) ==========
+            // ========== DEMO: Prescription (Data Duplication) ==========
             Console.WriteLine("\n--- Creating Prescription ---");
 
             var prescription = new Prescription
@@ -83,36 +68,30 @@ namespace MediLink
                 Dosage = "Take twice daily with meals"
             };
 
-            // VULNERABLE: CIVPF propagation - sensitive data flows from Patient & Doctor
+            // VULNERABLE: Data duplication - sensitive data flows from Patient & Doctor
             prescription.Create(patient, doctor);
 
             // VULNERABLE: Debug print exposes SSN and AuthToken
             Console.WriteLine("\n[VULNERABLE] Debug Print:");
             prescription.DebugPrint();
 
-            // Log prescription (VULNERABLE: logs sensitive data)
-            logger.LogPrescription(prescription);
-
-            // ========== DEMO: Pharmacy Adapter (External Transmission) ==========
-            Console.WriteLine("\n--- Pharmacy Adapter (External System) ---");
+            // ========== DEMO: Pharmacy Adapter (Fulfillment) ==========
+            Console.WriteLine("\n--- Pharmacy Adapter (Fulfillment) ---");
 
             var pharmacy = new PharmacyAdapter
             {
                 PharmacyID = 7001,
                 PharmacyName = "HealthFirst Pharmacy",
-                APIKey = "pk_live_abc123xyz789_SENSITIVE",  // BAD: Plain text API key
                 ConnectionString = "Server=prod-db;Database=Pharmacy;User=admin;Password=DbPass123!" // BAD!
             };
 
-            prescription.SetPharmacy(pharmacy);
-
-            // VULNERABLE: Transmit prescription (final CIVPF hop - data leaves system)
-            Console.WriteLine("\n[VULNERABLE] Transmitting to External Pharmacy:");
-            pharmacy.TransmitPrescription(prescription);
+            // SIMPLIFIED: Pharmacist just receives and marks as fulfilled
+            Console.WriteLine("\n[SIMPLIFIED] Fulfilling Prescription:");
+            pharmacy.FulfillPrescription(prescription);
 
             // VULNERABLE: SQL Injection demonstration
             Console.WriteLine("\n[VULNERABLE] SQL Injection Risk:");
-            pharmacy.VerifyPatientID("123-45-6789"); // Logged in plain text
+            pharmacy.VerifyPatientID("123-45-6789");
 
             // Demonstrate SQL injection attack vector
             Console.WriteLine("\n[ATTACK] SQL Injection attempt:");
@@ -133,14 +112,6 @@ namespace MediLink
                 Console.WriteLine($"  {kvp.Key}: {kvp.Value}");
             }
 
-            // VULNERABLE: Export doctor credentials
-            Console.WriteLine("\n[VULNERABLE] Doctor Credentials Export:");
-            var credentials = doctor.ExportCredentials();
-            foreach (var kvp in credentials)
-            {
-                Console.WriteLine($"  {kvp.Key}: {kvp.Value}");
-            }
-
             // ========== SUMMARY ==========
             Console.WriteLine("\n========================================");
             Console.WriteLine("        Security Metrics Summary        ");
@@ -149,16 +120,15 @@ namespace MediLink
             Console.WriteLine("Class                | AVR   | VCC | Status");
             Console.WriteLine("---------------------|-------|-----|--------");
             Console.WriteLine("PatientRecord        | 0.67  | 0   | 🔴 POOR");
-            Console.WriteLine("Doctor               | 0.50  | 0   | 🔴 POOR");
-            Console.WriteLine("Prescription         | 0.33  | 3   | 🔴 POOR");
-            Console.WriteLine("PharmacyAdapter      | 0.50  | 1   | 🔴 POOR");
-            Console.WriteLine("AuditLogger          | 0.50  | 2   | 🔴 POOR");
+            Console.WriteLine("Doctor               | 0.40  | 0   | ⚠️  MODERATE");
+            Console.WriteLine("Prescription         | 0.33  | 2   | ⚠️  MODERATE");
+            Console.WriteLine("PharmacyAdapter      | 0.33  | 1   | ⚠️  MODERATE");
             Console.WriteLine("---------------------|-------|-----|--------");
-            Console.WriteLine("System AVR           | 0.50  |     | 🔴 POOR");
-            Console.WriteLine("System VCC           |       | 6   | 🔴 POOR");
-            Console.WriteLine("Max CIVPF Path       |       | 3   | 🔴 POOR");
+            Console.WriteLine("System AVR           | 0.43  |     | ⚠️  MODERATE");
+            Console.WriteLine("System VCC           |       | 3   | ⚠️  MODERATE");
+            Console.WriteLine("Max CIVPF Path       |       | 2   | ⚠️  MODERATE");
             Console.WriteLine();
-            Console.WriteLine("Critical VA Methods (≥0.50): 6 methods");
+            Console.WriteLine("Critical VA Methods (≥0.50): 4 methods");
             Console.WriteLine();
             Console.WriteLine("⚠️  This application is intentionally insecure.");
             Console.WriteLine("    Use only for educational security analysis.");

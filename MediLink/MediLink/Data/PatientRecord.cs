@@ -5,7 +5,7 @@ namespace MediLink.Data
     /// 
     /// AVR Calculation:
     /// - Total Attributes: 6
-    /// - Vulnerable Attributes: 4 (DOB, SSN, MedicalHistory, CreditCardToken)
+    /// - Vulnerable Attributes: 4 (DOB, SSN, MedicalHistory, CardToken)
     /// - AVR Score: 4/6 = 0.667 (67%)
     /// 
     /// This class demonstrates POOR security practices for educational analysis.
@@ -45,10 +45,10 @@ namespace MediLink.Data
         public string MedicalHistory { get; set; } = string.Empty;
 
         /// <summary>
-        /// PCI Data - Credit card token poorly named and not properly secured.
+        /// Payment card token poorly named and not properly secured.
         /// VULNERABILITY: Payment information should be tokenized and secured.
         /// </summary>
-        public string CreditCardToken { get; set; } = string.Empty;
+        public string CardToken { get; set; } = string.Empty;
 
         // ========== METHODS ==========
 
@@ -64,7 +64,7 @@ namespace MediLink.Data
 
         /// <summary>
         /// VULNERABLE: Accesses ALL attributes including sensitive ones.
-        /// VA Risk: HIGH - Exposes SSN, DOB, MedicalHistory, CreditCardToken (4/6 = 0.67)
+        /// VA Risk: HIGH - Exposes SSN, DOB, MedicalHistory, CardToken (4/6 = 0.67)
         /// </summary>
         /// <returns>Full patient report with all sensitive data exposed</returns>
         public string GenerateReport()
@@ -74,7 +74,7 @@ namespace MediLink.Data
                    $"SSN: {SSN}\n" +                    // VULNERABILITY
                    $"DOB: {DOB}\n" +                    // VULNERABILITY
                    $"History: {MedicalHistory}\n" +    // VULNERABILITY
-                   $"Payment: {CreditCardToken}";      // VULNERABILITY
+                   $"Payment: {CardToken}";      // VULNERABILITY
         }
 
         /// <summary>
@@ -113,7 +113,7 @@ namespace MediLink.Data
                 { "DOB", DOB },                         // VULNERABILITY
                 { "SSN", SSN },                         // VULNERABILITY
                 { "MedicalHistory", MedicalHistory },   // VULNERABILITY
-                { "CreditCardToken", CreditCardToken }  // VULNERABILITY
+                { "CardToken", CardToken }  // VULNERABILITY
             };
         }
     }

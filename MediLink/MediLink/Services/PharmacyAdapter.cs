@@ -3,15 +3,15 @@ using MediLink.Business;
 namespace MediLink.Services
 {
     /// <summary>
-    /// Handles external communication with pharmacy systems.
-    /// PRIMARY TARGET for VA (Vulnerability Amplification) and downstream CIVPF analysis.
+    /// Handles prescription fulfillment at the pharmacy.
+    /// Simplified to demonstrate that pharmacist just receives and marks prescriptions as fulfilled.
     /// 
     /// AVR Calculation:
-    /// - Total Attributes: 4
-    /// - Vulnerable Attributes: 2 (APIKey, ConnectionString)
-    /// - AVR Score: 2/4 = 0.50 (50%)
+    /// - Total Attributes: 3
+    /// - Vulnerable Attributes: 1 (ConnectionString)
+    /// - AVR Score: 1/3 = 0.33 (33%)
     /// 
-    /// This class demonstrates data leaving the system boundary.
+    /// This class demonstrates simplified pharmacy operations.
     /// </summary>
     public class PharmacyAdapter
     {
@@ -27,13 +27,7 @@ namespace MediLink.Services
         /// </summary>
         public string PharmacyName { get; set; } = string.Empty;
 
-        // ========== VULNERABLE ATTRIBUTES (2) ==========
-
-        /// <summary>
-        /// API Key stored in plain text - should be in secure configuration.
-        /// VULNERABILITY: API keys should use secure vault storage.
-        /// </summary>
-        public string APIKey { get; set; } = string.Empty;
+        // ========== VULNERABLE ATTRIBUTES (1) ==========
 
         /// <summary>
         /// Database connection string with exposed credentials.
@@ -51,29 +45,20 @@ namespace MediLink.Services
         // ========== METHODS ==========
 
         /// <summary>
-        /// VULNERABLE: Transmits prescription including all sensitive data.
-        /// CIVPF Risk: HIGH - Inherits vulnerability from Prescription.GetForPharmacy().
-        /// VA Risk: CRITICAL (3/5 = 0.60) - External data transmission.
-        /// 
-        /// This is the final hop in the CIVPF chain before data leaves the system.
+        /// SIMPLIFIED: Receives prescription and marks it as fulfilled.
+        /// No external transmission - pharmacist just processes it internally.
         /// </summary>
-        /// <param name="prescription">Prescription with sensitive data</param>
-        /// <returns>True if transmission succeeds</returns>
-        public bool TransmitPrescription(Prescription prescription)
+        /// <param name="prescription">Prescription to fulfill</param>
+        /// <returns>True if fulfillment succeeds</returns>
+        public bool FulfillPrescription(Prescription prescription)
         {
             _prescription = prescription;
 
-            // BAD PRACTICE: Getting full DTO with sensitive data
-            var dto = prescription.GetForPharmacy();
+            // Simple fulfillment - just mark as received
+            Console.WriteLine($"Prescription {prescription.PrescriptionID} received and marked as FULFILLED");
+            Console.WriteLine($"Drug: {prescription.DrugName}, Dosage: {prescription.Dosage}");
 
-            // BAD PRACTICE: Logging sensitive data before transmission
-            Console.WriteLine($"Transmitting: SSN={dto.PatientSSN}, Token={dto.AuthToken}");
-
-            // BAD PRACTICE: Including API key in logs
-            Console.WriteLine($"Using API Key: {APIKey}");
-
-            // BAD PRACTICE: No encryption, sending to external system
-            return SendToExternalAPI(dto);
+            return true;
         }
 
         /// <summary>
@@ -89,8 +74,7 @@ namespace MediLink.Services
             // CRITICAL: SQL INJECTION VULNERABILITY!
             var query = $"SELECT * FROM Patients WHERE SSN = '{ssn}'";
 
-            // BAD PRACTICE: Logging SSN
-            Console.WriteLine($"Verifying SSN: {ssn}");
+            Console.WriteLine($"Verifying patient with SSN");
 
             return ExecuteQuery(query);
         }
@@ -119,34 +103,6 @@ namespace MediLink.Services
         }
 
         /// <summary>
-        /// VULNERABLE: Exposes API key.
-        /// VA Risk: MEDIUM (1/1 = 1.00)
-        /// </summary>
-        /// <returns>Raw API key</returns>
-        public string GetAPIKey()
-        {
-            // BAD PRACTICE: Direct API key exposure
-            return APIKey;
-        }
-
-        /// <summary>
-        /// Simulated external API call - would send data to pharmacy.
-        /// VULNERABILITY: No encryption, no secure channel verification.
-        /// </summary>
-        /// <param name="dto">Prescription DTO with sensitive data</param>
-        /// <returns>True (simulated success)</returns>
-        private bool SendToExternalAPI(PrescriptionDTO dto)
-        {
-            // BAD PRACTICE: No encryption, no secure channel
-            // In reality, dto.PatientSSN and dto.AuthToken are being transmitted unsecurely
-
-            // Simulated logging of the JSON payload (BAD PRACTICE)
-            Console.WriteLine($"[EXTERNAL API] Payload: {dto.ToJson()}");
-
-            return true;
-        }
-
-        /// <summary>
         /// Simulated SQL execution - vulnerable to SQL injection.
         /// </summary>
         /// <param name="query">Raw SQL query (unsanitized)</param>
@@ -168,8 +124,7 @@ namespace MediLink.Services
             int verified = 0;
             foreach (var ssn in ssnList)
             {
-                // BAD PRACTICE: Logging all SSNs
-                Console.WriteLine($"Bulk verifying: {ssn}");
+                Console.WriteLine($"Bulk verifying patient");
                 if (VerifyPatientID(ssn))
                 {
                     verified++;

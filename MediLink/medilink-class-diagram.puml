@@ -18,11 +18,13 @@ package "MediLink.Data" {
         + DOB : DateTime
         + SSN : string
         + MedicalHistory : string
-        + CreditCardToken : string
+        + CardToken : string
         
         + GetBasicInfo() : (int, string)
         + GenerateReport() : string
         + GetSSN() : string
+        + UpdateSSN(newSSN: string) : void
+        + ExportAllData() : Dictionary<string, object>
     }
     
     class Doctor {
@@ -30,12 +32,12 @@ package "MediLink.Data" {
         + FullName : string
         + Specialty : string
         + AuthToken : string
-        + PrivateKey : string
         + Password : string
         
         + ValidatePassword(input: string) : bool
         + GetAuthToken() : string
-        + SignPrescription(data: string) : string
+        + GenerateNewToken() : string
+        + ResetPassword(newPassword: string) : void
     }
 }
 
@@ -49,12 +51,11 @@ package "MediLink.Business" {
         + RawPatientSSN : string
         - _patient : PatientRecord
         - _doctor : Doctor
-        - _pharmacy : PharmacyAdapter
         
         + Create(patient: PatientRecord, doctor: Doctor) : void
-        + GetForPharmacy() : PrescriptionDTO
         + ValidateWithSSN(inputSSN: string) : bool
         + DebugPrint() : void
+        + GetSensitiveData() : (string, string)
     }
     
     class PrescriptionDTO <<DTO>> {
@@ -64,6 +65,8 @@ package "MediLink.Business" {
         + Dosage : string
         + PatientSSN : string
         + AuthToken : string
+        
+        + ToJson() : string
     }
 }
 
@@ -71,39 +74,29 @@ package "MediLink.Services" {
     class PharmacyAdapter {
         + PharmacyID : int
         + PharmacyName : string
-        + APIKey : string
         + ConnectionString : string
         - _prescription : Prescription
         
-        + TransmitPrescription(prescription: Prescription) : bool
+        + FulfillPrescription(prescription: Prescription) : bool
         + VerifyPatientID(ssn: string) : bool
         + LogTransaction(prescriptionId: Guid, timestamp: DateTime) : void
         + GetDatabaseConnection() : string
-        - SendToExternalAPI(dto: PrescriptionDTO) : bool
+        + BulkVerify(ssnList: List<string>) : int
         - ExecuteQuery(query: string) : bool
     }
 }
 
 package "MediLink.Utilities" {
     class AuditLogger {
-        + LogFilePath : string
-        
-        + LogPatientAccess(patient: PatientRecord, action: string) : void
-        + LogPrescription(rx: Prescription) : void
     }
 }
 
 ' Relationships
 Prescription "1" *-- "1" PatientRecord : contains
 Prescription "1" *-- "1" Doctor : contains
-Prescription "1" *-- "1" PharmacyAdapter : uses
 Prescription ..> PrescriptionDTO : creates
 
-PharmacyAdapter "1" o-- "1" Prescription : transmits
-PharmacyAdapter ..> PrescriptionDTO : sends
-
-AuditLogger ..> PatientRecord : logs
-AuditLogger ..> Prescription : logs
+PharmacyAdapter "1" o-- "1" Prescription : fulfills
 
 ' Class Descriptions
 note right of PatientRecord
@@ -120,15 +113,14 @@ end note
 
 note bottom of Prescription
   Central business entity that
-  links patients, doctors, and
-  pharmacies for prescription
-  management.
+  links patients and doctors for
+  prescription management.
 end note
 
 note left of PharmacyAdapter
-  Handles communication with
-  external pharmacy systems
-  and prescription transmission.
+  Handles prescription fulfillment.
+  Pharmacist receives and marks
+  prescriptions as fulfilled.
 end note
 
 note bottom of PrescriptionDTO
@@ -137,9 +129,8 @@ note bottom of PrescriptionDTO
 end note
 
 note left of AuditLogger
-  Utility class for logging
-  system activities and
-  prescription events.
+  Utility class for system
+  audit logging.
 end note
 
 @enduml

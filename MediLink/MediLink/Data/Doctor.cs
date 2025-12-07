@@ -5,9 +5,9 @@ namespace MediLink.Data
     /// Demonstrates POOR security practices for educational analysis.
     /// 
     /// AVR Calculation:
-    /// - Total Attributes: 6
-    /// - Vulnerable Attributes: 3 (AuthToken, PrivateKey, Password)
-    /// - AVR Score: 3/6 = 0.50 (50%)
+    /// - Total Attributes: 5
+    /// - Vulnerable Attributes: 2 (AuthToken, Password)
+    /// - AVR Score: 2/5 = 0.40 (40%)
     /// </summary>
     public class Doctor
     {
@@ -28,19 +28,13 @@ namespace MediLink.Data
         /// </summary>
         public string Specialty { get; set; } = string.Empty;
 
-        // ========== VULNERABLE ATTRIBUTES (3) ==========
+        // ========== VULNERABLE ATTRIBUTES (2) ==========
 
         /// <summary>
         /// HIGH PRIVILEGE - Authentication token stored in plain text.
         /// VULNERABILITY: Should be securely stored, rotated, and never exposed.
         /// </summary>
         public string AuthToken { get; set; } = string.Empty;
-
-        /// <summary>
-        /// CRITICAL - Private signing key exposed as public property.
-        /// VULNERABILITY: Private keys should NEVER be accessible as properties.
-        /// </summary>
-        public string PrivateKey { get; set; } = string.Empty;
 
         /// <summary>
         /// CRITICAL - Plain text password storage.
@@ -75,19 +69,6 @@ namespace MediLink.Data
         }
 
         /// <summary>
-        /// VULNERABLE: Signs data with exposed private key.
-        /// VA Risk: CRITICAL (1/2 = 0.50)
-        /// </summary>
-        /// <param name="data">Data to sign</param>
-        /// <returns>Signed data string</returns>
-        public string SignPrescription(string data)
-        {
-            // BAD PRACTICE: Using PrivateKey directly in concatenation
-            // Should use proper cryptographic signing
-            return $"{data}|SIGNED_BY|{PrivateKey}";
-        }
-
-        /// <summary>
         /// VULNERABLE: Generates new token without proper randomness.
         /// </summary>
         /// <returns>Weakly generated token</returns>
@@ -107,22 +88,6 @@ namespace MediLink.Data
             // BAD PRACTICE: No password complexity validation
             // No hashing, storing plain text
             Password = newPassword;
-        }
-
-        /// <summary>
-        /// VULNERABLE: Exports all credentials.
-        /// VA Risk: CRITICAL
-        /// </summary>
-        /// <returns>Dictionary with all sensitive credentials</returns>
-        public Dictionary<string, string> ExportCredentials()
-        {
-            // BAD PRACTICE: Exporting all sensitive credentials at once
-            return new Dictionary<string, string>
-            {
-                { "AuthToken", AuthToken },     // VULNERABILITY
-                { "PrivateKey", PrivateKey },   // VULNERABILITY
-                { "Password", Password }        // VULNERABILITY
-            };
         }
     }
 }

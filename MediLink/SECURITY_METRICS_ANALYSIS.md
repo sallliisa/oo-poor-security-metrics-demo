@@ -1435,6 +1435,32 @@ The MediLink system demonstrates **critical security vulnerabilities** across al
 - **VCC of 6** reveals excessive coupling with vulnerable data exchange
 - **VA of 0.55** means most methods expose significant sensitive data
 
+### Vulnerable Attributes Summary
+
+The system contains **12 vulnerable attributes** across 5 classes:
+
+#### PatientRecord (4 vulnerable attributes)
+- **`DOB`** (DateTime): Date of birth is Personally Identifiable Information (PII) stored without encryption, enabling identity theft and violating privacy regulations like HIPAA.
+- **`SSN`** (string): Social Security Number stored in plain text is a critical PII violation. SSNs should be encrypted at rest and only decrypted when absolutely necessary with proper authorization.
+- **`MedicalHistory`** (string): Protected Health Information (PHI) accessible without role-based access control or encryption, violating HIPAA requirements for medical record protection.
+- **`CreditCardToken`** (string): Despite being named "token," this attribute stores payment information improperly, violating PCI-DSS standards which require proper tokenization or encryption of payment card data.
+
+#### Doctor (3 vulnerable attributes)
+- **`AuthToken`** (string): Authentication token stored in plain text without encryption, rotation, or expiration. Compromised tokens grant unauthorized access to doctor privileges.
+- **`PrivateKey`** (string): Cryptographic private key exposed as a public property enables signature forgery and breaks the entire prescription signing mechanism's security.
+- **`Password`** (string): Password stored in plain text instead of using industry-standard hashing algorithms (bcrypt, Argon2), allowing complete account compromise if the database is breached.
+
+#### Prescription (2 vulnerable attributes)
+- **`DoctorAuthToken`** (string): Duplicated from the Doctor class, this creates an additional attack surface and violates the single source of truth principle, making credential rotation impossible.
+- **`RawPatientSSN`** (string): Copied from PatientRecord for "convenience," this duplication amplifies the CIVPF score and creates multiple breach points for the same sensitive data.
+
+#### PharmacyAdapter (2 vulnerable attributes)
+- **`APIKey`** (string): External API key stored as a class property instead of in a secure vault (Azure Key Vault, AWS Secrets Manager), making it accessible to any code with a class reference.
+- **`ConnectionString`** (string): Database connection string containing embedded credentials stored in plain text, violating secure configuration management practices.
+
+#### AuditLogger (1 vulnerable attribute)
+- **`LogFilePath`** (string): File system path exposure combined with the class's tendency to log sensitive data creates a persistent security vulnerability where log files become high-value targets.
+
 **Primary Risk:** The combination of high AVR, CIVPF, and VCC creates a "vulnerability cascade" where a breach at any point exposes data across multiple system layers.
 
 **Recommended Action:** Implement Priority 1 fixes immediately, followed by systematic refactoring to reduce coupling and improve encapsulation.
