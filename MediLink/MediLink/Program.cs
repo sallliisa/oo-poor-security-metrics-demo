@@ -65,10 +65,6 @@ namespace MediLink
             Console.WriteLine("\n[VULNERABLE] Patient Report:");
             Console.WriteLine(patient.GenerateReport());
 
-            // VULNERABLE: Expose all contact information
-            var (phone, email, emergency) = patient.GetContactInfo();
-            Console.WriteLine($"\n[VULNERABLE] Contact Info - Phone: {phone}, Email: {email}");
-
             // ========== DEMO: Doctor (User Inheritance) ==========
             Console.WriteLine("\n--- Creating Doctor Record ---");
 
@@ -101,14 +97,6 @@ namespace MediLink
 
             // SAFE: Data stored using references only
             prescription.Create(patient, doctor);
-
-            // SAFE: Debug print without sensitive data
-            Console.WriteLine("\n[SAFE] Debug Print:");
-            prescription.DebugPrint();
-
-            // VULNERABLE: Expose financial information
-            var cost = prescription.CalculateTotalCost();
-            Console.WriteLine($"[VULNERABLE] Total cost exposed: ${cost}");
 
             // ========== DEMO: In-House Pharmacy Order ==========
             Console.WriteLine("\n--- In-House Pharmacy Order ---");

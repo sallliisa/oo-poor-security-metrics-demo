@@ -77,6 +77,126 @@ The system contains **13 vulnerable attributes** across 5 classes:
 
 ---
 
+## Vulnerable Methods Summary
+
+The system contains **vulnerable methods** that expose sensitive data across multiple classes. These methods contribute to the **VA (Vulnerability Accessibility)** metric.
+
+### PatientRecord (1 vulnerable method)
+
+#### `GenerateReport()` - VA Score: 1.00 (HIGH)
+
+**Exposes:** All patient data including NIK, DOB, and medical history
+
+```csharp
+public string GenerateReport()
+{
+    return $"Patient: {FullName}\n" +
+           $"SSN: {SSN}\n" +
+           $"DOB: {DOB}\n" +
+           $"History: {MedicalHistory}\n";
+}
+```
+
+**Risk:** Complete patient profile exposure in plain text
+
+---
+
+### User (Inherited by Doctor & Admin) (4 vulnerable methods)
+
+#### `ValidatePassword()` - VA Score: 0.50 (MEDIUM)
+
+**Exposes:** Password comparison logic
+
+```csharp
+public bool ValidatePassword(string input)
+{
+    return Password == input; // Plain text comparison
+}
+```
+
+**Risk:** Timing attacks, no rate limiting, plain text storage
+
+---
+
+#### `GetAuthToken()` - VA Score: 1.00 (HIGH)
+
+**Exposes:** Authentication token
+
+```csharp
+public string GetAuthToken()
+{
+    return AuthToken; // Direct token exposure
+}
+```
+
+**Risk:** Session hijacking, unauthorized access
+
+---
+
+#### `GenerateNewToken()` - VA Score: 0.75 (HIGH)
+
+**Exposes:** Token generation logic and new token
+
+```csharp
+public string GenerateNewToken()
+{
+    AuthToken = Guid.NewGuid().ToString();
+    return AuthToken;
+}
+```
+
+**Risk:** Predictable tokens, no cryptographic randomness
+
+---
+
+#### `ResetPassword()` - VA Score: 0.50 (MEDIUM)
+
+**Exposes:** Password reset mechanism
+
+```csharp
+public void ResetPassword(string newPassword)
+{
+    Password = newPassword; // No validation, plain text
+}
+```
+
+**Risk:** Weak password acceptance, no complexity requirements
+
+---
+
+### PharmacyOrder (1 vulnerable method)
+
+#### `MarkFulfilled()` - VA Score: 0.20 (LOW)
+
+**Exposes:** Minimal information (status change)
+
+```csharp
+public void MarkFulfilled()
+{
+    Status = "Fulfilled";
+    Console.WriteLine($"[PHARMACY] Order {OrderID} fulfilled");
+}
+```
+
+**Risk:** Low - only operational data
+
+---
+
+### Method Vulnerability Summary
+
+| Class         | Method               | VA Score | Severity    | Sensitive Data Exposed    |
+| ------------- | -------------------- | -------- | ----------- | ------------------------- |
+| PatientRecord | `GenerateReport()`   | 1.00     | 🔴 CRITICAL | NIK, DOB, Medical History |
+| User          | `GetAuthToken()`     | 1.00     | 🔴 CRITICAL | Authentication token      |
+| User          | `GenerateNewToken()` | 0.75     | 🔴 HIGH     | New auth token            |
+| User          | `ValidatePassword()` | 0.50     | ⚠️ MEDIUM   | Password logic            |
+| User          | `ResetPassword()`    | 0.50     | ⚠️ MEDIUM   | Password reset            |
+| PharmacyOrder | `MarkFulfilled()`    | 0.20     | 🟢 LOW      | Status only               |
+
+**Average Method VA**: ~0.66 (66% of methods expose significant sensitive data)
+
+---
+
 ## Key Improvements from Simplification
 
 The simplified MediLink system has **improved** compared to a more complex implementation:

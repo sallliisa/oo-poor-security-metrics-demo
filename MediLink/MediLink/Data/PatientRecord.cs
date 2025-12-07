@@ -89,55 +89,5 @@ namespace MediLink.Data
                    $"DOB: {DOB}\n" +                    // VULNERABILITY
                    $"History: {MedicalHistory}";    // VULNERABILITY
         }
-
-        /// <summary>
-        /// VULNERABLE: Returns raw NIK without masking.
-        /// VA Risk: HIGH (1/1 = 1.00)
-        /// </summary>
-        /// <returns>Unmasked, unprotected NIK</returns>
-        public string GetNIK()
-        {
-            // BAD PRACTICE: No masking, no audit log, direct exposure
-            return SSN;
-        }
-
-        /// <summary>
-        /// VULNERABLE: Updates NIK without validation.
-        /// </summary>
-        /// <param name="newNIK">New NIK value - no validation performed</param>
-        public void UpdateNIK(string newNIK)
-        {
-            // BAD PRACTICE: No format validation, no audit logging
-            SSN = newNIK;
-        }
-
-        /// <summary>
-        /// VULNERABLE: Exposes all contact information.
-        /// VA Risk: HIGH (3/3 = 1.00)
-        /// </summary>
-        /// <returns>Tuple containing phone, email, and emergency contact</returns>
-        public (string phone, string email, string emergency) GetContactInfo()
-        {
-            // BAD PRACTICE: Bundling all contact PII for easy extraction
-            return (PhoneNumber, EmailAddress, EmergencyContact);
-        }
-
-        /// <summary>
-        /// VULNERABLE: Provides full data dump for export.
-        /// VA Risk: HIGH
-        /// </summary>
-        /// <returns>Dictionary containing all patient data</returns>
-        public Dictionary<string, object> ExportAllData()
-        {
-            // BAD PRACTICE: Exporting all sensitive data without redaction
-            return new Dictionary<string, object>
-            {
-                { "PatientID", PatientID },
-                { "FullName", FullName },
-                { "DOB", DOB },                         // VULNERABILITY
-                { "SSN", SSN },                         // VULNERABILITY
-                { "MedicalHistory", MedicalHistory }   // VULNERABILITY
-            };
-        }
     }
 }

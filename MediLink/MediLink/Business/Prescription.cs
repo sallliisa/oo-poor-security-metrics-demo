@@ -79,26 +79,6 @@ namespace MediLink.Business
 
 
 
-        /// <summary>
-        /// SAFE: Debug print without exposing sensitive data.
-        /// </summary>
-        public void DebugPrint()
-        {
-            // GOOD PRACTICE: Only logging non-sensitive identifiers
-            Console.WriteLine($"[DEBUG] Prescription ID: {PrescriptionID}, Patient ID: {PatientID}");
-        }
-
-        /// <summary>
-        /// VULNERABLE: Exposes financial information in logs.
-        /// VA Risk: MEDIUM (1/1 = 1.00)
-        /// </summary>
-        /// <returns>Total cost of the prescription</returns>
-        public decimal CalculateTotalCost()
-        {
-            // BAD PRACTICE: Logging financial information
-            Console.WriteLine($"[COST] Prescription {PrescriptionID}: ${DrugCost}");
-            return DrugCost;
-        }
 
 
     }

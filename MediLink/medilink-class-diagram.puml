@@ -25,10 +25,6 @@ package "MediLink.Data" {
         
         + GetBasicInfo() : (int, string)
         + GenerateReport() : string
-        + GetNIK() : string
-        + UpdateNIK(newNIK: string) : void
-        + ExportAllData() : Dictionary<string, object>
-        + GetContactInfo() : (string, string, string)
     }
     
     abstract class User {
@@ -71,8 +67,6 @@ package "MediLink.Business" {
         - _doctor : Doctor
         
         + Create(patient: PatientRecord, doctor: Doctor) : void
-        + DebugPrint() : void
-        + CalculateTotalCost() : decimal
     }
     
     class PrescriptionDTO <<DTO>> {
