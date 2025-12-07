@@ -12,17 +12,18 @@ skinparam class {
 package "MediLink.Data" {
     class PatientRecord {
         + PatientID : int
-        + FullName : string
-        + DOB : DateTime
+        - _fullName : string
+        - _dob : DateTime
         - _nik : string
-        + MedicalHistory : string
-        + PhoneNumber : string
-        + EmailAddress : string
-        + EmergencyContact : string
+        - _medicalHistory : string
+        - _phoneNumber : string
+        - _emailAddress : string
+        - _emergencyContact : string
         
         + GetBasicInfo() : (int, string)
         + GenerateReport() : string
-        + GetNIK() : string
+        + GetPersonalData() : PersonalDataDTO
+        + GetLegalMedicalData() : LegalMedicalDataDTO
     }
     
     abstract class User {
@@ -34,16 +35,19 @@ package "MediLink.Data" {
         + ValidatePassword(input: string) : bool
         + GenerateNewToken() : string
         + ResetPassword(newPassword: string) : void
+        + {abstract} GetUserData() : object
     }
 
     class Doctor {
         + SpecialtyID : int
-        + MedicalLicenseNumber : string
+        - _medicalLicenseNumber : string
+        + GetUserData() : DoctorDataDTO
     }
 
     class Admin {
         + AccessLevel : int
         + Role : string
+        + GetUserData() : AdminDataDTO
     }
 
     class MedicalSpecialty {
