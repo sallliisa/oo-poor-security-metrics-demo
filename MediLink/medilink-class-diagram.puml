@@ -1,0 +1,145 @@
+@startuml MediLink Class Diagram
+
+' Title and Styling
+title MediLink - Telemedicine & Prescription Management System\nClass Diagram
+
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #F5F5F5
+    BackgroundColor<<DTO>> #E3F2FD
+    BorderColor Black
+    ArrowColor Black
+}
+
+package "MediLink.Data" {
+    class PatientRecord {
+        + PatientID : int
+        + FullName : string
+        + DOB : DateTime
+        + SSN : string
+        + MedicalHistory : string
+        + CreditCardToken : string
+        
+        + GetBasicInfo() : (int, string)
+        + GenerateReport() : string
+        + GetSSN() : string
+    }
+    
+    class Doctor {
+        + DoctorID : int
+        + FullName : string
+        + Specialty : string
+        + AuthToken : string
+        + PrivateKey : string
+        + Password : string
+        
+        + ValidatePassword(input: string) : bool
+        + GetAuthToken() : string
+        + SignPrescription(data: string) : string
+    }
+}
+
+package "MediLink.Business" {
+    class Prescription {
+        + PrescriptionID : Guid
+        + PatientID : int
+        + DrugName : string
+        + Dosage : string
+        + DoctorAuthToken : string
+        + RawPatientSSN : string
+        - _patient : PatientRecord
+        - _doctor : Doctor
+        - _pharmacy : PharmacyAdapter
+        
+        + Create(patient: PatientRecord, doctor: Doctor) : void
+        + GetForPharmacy() : PrescriptionDTO
+        + ValidateWithSSN(inputSSN: string) : bool
+        + DebugPrint() : void
+    }
+    
+    class PrescriptionDTO <<DTO>> {
+        + PrescriptionID : Guid
+        + PatientID : int
+        + DrugName : string
+        + Dosage : string
+        + PatientSSN : string
+        + AuthToken : string
+    }
+}
+
+package "MediLink.Services" {
+    class PharmacyAdapter {
+        + PharmacyID : int
+        + PharmacyName : string
+        + APIKey : string
+        + ConnectionString : string
+        - _prescription : Prescription
+        
+        + TransmitPrescription(prescription: Prescription) : bool
+        + VerifyPatientID(ssn: string) : bool
+        + LogTransaction(prescriptionId: Guid, timestamp: DateTime) : void
+        + GetDatabaseConnection() : string
+        - SendToExternalAPI(dto: PrescriptionDTO) : bool
+        - ExecuteQuery(query: string) : bool
+    }
+}
+
+package "MediLink.Utilities" {
+    class AuditLogger {
+        + LogFilePath : string
+        
+        + LogPatientAccess(patient: PatientRecord, action: string) : void
+        + LogPrescription(rx: Prescription) : void
+    }
+}
+
+' Relationships
+Prescription "1" *-- "1" PatientRecord : contains
+Prescription "1" *-- "1" Doctor : contains
+Prescription "1" *-- "1" PharmacyAdapter : uses
+Prescription ..> PrescriptionDTO : creates
+
+PharmacyAdapter "1" o-- "1" Prescription : transmits
+PharmacyAdapter ..> PrescriptionDTO : sends
+
+AuditLogger ..> PatientRecord : logs
+AuditLogger ..> Prescription : logs
+
+' Class Descriptions
+note right of PatientRecord
+  Stores patient demographic and
+  medical information including
+  personal health records.
+end note
+
+note right of Doctor
+  Manages doctor credentials
+  and authentication information
+  for prescription authorization.
+end note
+
+note bottom of Prescription
+  Central business entity that
+  links patients, doctors, and
+  pharmacies for prescription
+  management.
+end note
+
+note left of PharmacyAdapter
+  Handles communication with
+  external pharmacy systems
+  and prescription transmission.
+end note
+
+note bottom of PrescriptionDTO
+  Data transfer object used
+  for pharmacy communication.
+end note
+
+note left of AuditLogger
+  Utility class for logging
+  system activities and
+  prescription events.
+end note
+
+@enduml
