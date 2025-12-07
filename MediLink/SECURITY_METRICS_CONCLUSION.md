@@ -66,10 +66,6 @@ The system contains **9 vulnerable attributes** across 4 classes:
 
 - **`RawPatientSSN`** (string): Copied from PatientRecord for "convenience," this duplication amplifies the CIVPF score from 1 to 2 hops and creates multiple breach points for the same sensitive data. This is a prime example of how data duplication increases vulnerability.
 
-### PharmacyAdapter (1 vulnerable attribute)
-
-- **`ConnectionString`** (string): Database connection string containing embedded credentials stored in plain text, violating secure configuration management practices. Connection strings should be encrypted and stored in secure configuration systems or vaults.
-
 ---
 
 ## Key Improvements from Simplification

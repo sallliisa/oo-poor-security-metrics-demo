@@ -1,7 +1,7 @@
 @startuml MediLink Class Diagram
 
 ' Title and Styling
-title MediLink - Telemedicine & Prescription Management System\nClass Diagram
+' title MediLink - Telemedicine & Prescription Management System\nClass Diagram
 
 skinparam classAttributeIconSize 0
 skinparam class {
@@ -74,13 +74,11 @@ package "MediLink.Services" {
     class PharmacyAdapter {
         + PharmacyID : int
         + PharmacyName : string
-        + ConnectionString : string
         - _prescription : Prescription
         
         + FulfillPrescription(prescription: Prescription) : bool
         + VerifyPatientID(ssn: string) : bool
         + LogTransaction(prescriptionId: Guid, timestamp: DateTime) : void
-        + GetDatabaseConnection() : string
         + BulkVerify(ssnList: List<string>) : int
         - ExecuteQuery(query: string) : bool
     }
@@ -98,39 +96,39 @@ Prescription ..> PrescriptionDTO : creates
 
 PharmacyAdapter "1" o-- "1" Prescription : fulfills
 
-' Class Descriptions
-note right of PatientRecord
-  Stores patient demographic and
-  medical information including
-  personal health records.
-end note
+' ' Class Descriptions
+' note right of PatientRecord
+'   Stores patient demographic and
+'   medical information including
+'   personal health records.
+' end note
 
-note right of Doctor
-  Manages doctor credentials
-  and authentication information
-  for prescription authorization.
-end note
+' note right of Doctor
+'   Manages doctor credentials
+'   and authentication information
+'   for prescription authorization.
+' end note
 
-note bottom of Prescription
-  Central business entity that
-  links patients and doctors for
-  prescription management.
-end note
+' note bottom of Prescription
+'   Central business entity that
+'   links patients and doctors for
+'   prescription management.
+' end note
 
-note left of PharmacyAdapter
-  Handles prescription fulfillment.
-  Pharmacist receives and marks
-  prescriptions as fulfilled.
-end note
+' note left of PharmacyAdapter
+'   Handles prescription fulfillment.
+'   Pharmacist receives and marks
+'   prescriptions as fulfilled.
+' end note
 
-note bottom of PrescriptionDTO
-  Data transfer object used
-  for pharmacy communication.
-end note
+' note bottom of PrescriptionDTO
+'   Data transfer object used
+'   for pharmacy communication.
+' end note
 
-note left of AuditLogger
-  Utility class for system
-  audit logging.
-end note
+' note left of AuditLogger
+'   Utility class for system
+'   audit logging.
+' end note
 
 @enduml
