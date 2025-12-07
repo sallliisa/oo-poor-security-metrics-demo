@@ -1,8 +1,6 @@
-@startuml MediLink Class Diagram
+@startuml MediLink Class Diagram - Refactored
 
 ' Title and Styling
-' title MediLink - Telemedicine & Prescription Management System\nClass Diagram
-
 skinparam classAttributeIconSize 0
 skinparam class {
     BackgroundColor #F5F5F5
@@ -16,24 +14,24 @@ package "MediLink.Data" {
         + PatientID : int
         + FullName : string
         + DOB : DateTime
-        + NIK : string
+        - _nik : string
         + MedicalHistory : string
         + PhoneNumber : string
         + EmailAddress : string
         + EmergencyContact : string
-
         
         + GetBasicInfo() : (int, string)
         + GenerateReport() : string
+        + GetNIK() : string
     }
     
     abstract class User {
         + UserID : int
         + FullName : string
-        + AuthToken : string
-        + Password : string
-        + ValidatePassword(input: bool) : bool
-        + GetAuthToken() : string
+        - _passwordHash : string
+        - _authToken : string
+        
+        + ValidatePassword(input: string) : bool
         + GenerateNewToken() : string
         + ResetPassword(newPassword: string) : void
     }
@@ -60,13 +58,12 @@ package "MediLink.Business" {
     class Prescription {
         + PrescriptionID : Guid
         + PatientID : int
-        + DrugName : string
+        + DoctorID : int
+        - _drugName : string
         + Dosage : string
         + DrugCost : decimal
-        - _patient : PatientRecord
-        - _doctor : Doctor
         
-        + Create(patient: PatientRecord, doctor: Doctor) : void
+        + Create(patientID: int, doctorID: int) : void
     }
 
     class Appointment {
@@ -87,9 +84,10 @@ package "MediLink.Business" {
 package "MediLink.Services" {
     class PharmacyOrder {
         + OrderID : Guid
+        + PrescriptionID : Guid
         + OrderDate : DateTime
         + Status : string
-        + PatientName : string
+        
         + MarkFulfilled() : void
     }
 }
@@ -99,42 +97,12 @@ Admin --|> User
 Doctor --> MedicalSpecialty : references
 
 ' Relationships
-Prescription "1" *-- "1" PatientRecord : contains
-Prescription "1" *-- "1" Doctor : contains
+Prescription "*" --> "1" PatientRecord : references
+Prescription "*" --> "1" Doctor : references
 
 PharmacyOrder "1" o-- "1" Prescription : fulfills
 
 Appointment "*" --> "1" PatientRecord : scheduled for
 Appointment "*" --> "1" Doctor : with
-
-' ' Class Descriptions
-' note right of PatientRecord
-'   Stores patient demographic and
-'   medical information including
-'   personal health records.
-' end note
-
-' note right of Doctor
-'   Manages doctor credentials
-'   and authentication information
-'   for prescription authorization.
-' end note
-
-' note bottom of Prescription
-'   Central business entity that
-'   links patients and doctors for
-'   prescription management.
-' end note
-
-' note left of PharmacyAdapter
-'   Handles prescription fulfillment.
-'   Pharmacist receives and marks
-'   prescriptions as fulfilled.
-' end note
-
-' note left of AuditLogger
-'   Utility class for system
-'   audit logging.
-' end note
 
 @enduml
